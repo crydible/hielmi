@@ -36,7 +36,7 @@
       max-width: 400px;
       height: 400px;
       overflow-y: auto;
-      padding: 10px;
+      padding: 15px;
       border-radius: 4px;
     }
     table {
@@ -47,6 +47,8 @@
       padding: 6px;
       font-size: 14px;
       border: none;
+      color: #000;
+      vertical-align: top;
     }
   </style>
 </head>
@@ -60,44 +62,67 @@
     const sheetName = 'plafon';
     const range = 'A24:D40';
 
-    // Tambahan headers=0 biar baris awal gak hilang dianggap judul
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${sheetName}&range=${range}`;
+
+    // Fungsi khusus buat pecah CSV biar teks panjang atau aneh gak bikin baris hilang
+    function uraiCSV(teks) {
+      let baris = [];
+      let isiKolom = [""];
+      let dalamKutip = false;
+      
+      for (let i = 0; i < teks.length; i++) {
+        let huruf = teks[i];
+        let hurufBerikut = teks[i+1];
+        
+        if (huruf === '"') {
+          if (dalamKutip && hurufBerikut === '"') { 
+            isiKolom[isiKolom.length - 1] += '"'; 
+            i++; 
+          } else { 
+            dalamKutip = !dalamKutip; 
+          }
+        } else if (huruf === ',' && !dalamKutip) {
+          isiKolom.push('');
+        } else if ((huruf === '\r' || huruf === '\n') && !dalamKutip) {
+          if (huruf === '\r' && hurufBerikut === '\n') { i++; }
+          baris.push(isiKolom);
+          isiKolom = [''];
+        } else {
+          isiKolom[isiKolom.length - 1] += huruf;
+        }
+      }
+      if (isiKolom.length > 1 || isiKolom[0] !== '') baris.push(isiKolom);
+      return baris;
+    }
 
     fetch(url)
       .then(response => response.text())
       .then(csvText => {
-        const baris = csvText.split('\n');
+        const semuaBaris = uraiCSV(csvText);
         let tanggalHtml = '';
         let tabelHtml = '<table>';
         
-        baris.forEach((data, index) => {
-          // Pemecah kolom yang lebih aman kalau ada tanda koma di dalam teks
-          const kolom = data.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/(^"|"$)/g, '').trim());
+        // 1. Ambil baris 24 & 25 (index 0 & 1) khusus buat tanggal di luar kotak
+        for (let i = 0; i < Math.min(2, semuaBaris.length); i++) {
+          let k = semuaBaris[i];
+          let tgl = `${k[0] || ''} ${k[1] || ''}`.trim();
+          if (tgl) tanggalHtml += `<div>${tgl}</div>`;
+        }
+
+        // 2. Ambil baris sisanya (A26 ke bawah / index 2 sampai akhir) dimasukkan full ke kotak hasil
+        for (let i = 2; i < semuaBaris.length; i++) {
+          let k = semuaBaris[i];
           
-          if (index < 2) {
-            let tglRow = [];
-            if (kolom[0]) tglRow.push(kolom[0]);
-            if (kolom[1]) tglRow.push(kolom[1]);
-            if (tglRow.length > 0) {
-              tanggalHtml += `<div>${tglRow.join(' ')}</div>`;
-            }
-            
-            // Mengamankan data C dan D jika ada di baris 24-25 biar masuk ke kotak
-            if (kolom[2] || kolom[3]) {
-              tabelHtml += '<tr>';
-              tabelHtml += `<td></td><td></td>`; 
-              tabelHtml += `<td>${kolom[2] || ''}</td>`;
-              tabelHtml += `<td>${kolom[3] || ''}</td>`;
-              tabelHtml += '</tr>';
-            }
-          } else {
-            tabelHtml += '<tr>';
-            kolom.forEach(isi => {
-              tabelHtml += `<td>${isi || ''}</td>`;
-            });
-            tabelHtml += '</tr>';
+          // Skip kalau baris bener-bener kosong melompong
+          if (k.join('').trim() === '') continue; 
+          
+          tabelHtml += '<tr>';
+          // Paksa keluarin sampai 4 kolom (A, B, C, D) tanpa ada yang disembunyiin
+          for (let j = 0; j < 4; j++) {
+            tabelHtml += `<td>${k[j] || ''}</td>`;
           }
-        });
+          tabelHtml += '</tr>';
+        }
         
         tabelHtml += '</table>';
         
