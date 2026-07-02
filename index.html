@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hasil GSheet</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #3eb8c1, #008080); 
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+    h2 {
+      margin-top: 150px;
+      color: black;
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+    #hasil-box {
+      background-color: #b3b3b3;
+      width: 80%;
+      max-width: 400px;
+      height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    td {
+      padding: 5px;
+      border: 1px solid #888;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>hasil</h2>
+  <div id="hasil-box">Loading data...</div>
+
+  <script>
+    const sheetId = '1BfKO4BBELtGEg6yh4Ei7LGgGJ4Ckc4c3f2KJKglahoU';
+    const sheetName = 'plafon';
+    const range = 'A24:D40';
+
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}&range=${range}`;
+
+    fetch(url)
+      .then(response => response.text())
+      .then(csvText => {
+        const baris = csvText.split('\n');
+        let tabelHtml = '<table>';
+        
+        baris.forEach(data => {
+          tabelHtml += '<tr>';
+          const kolom = data.replace(/"/g, '').split(',');
+          kolom.forEach(isi => {
+            tabelHtml += `<td>${isi}</td>`;
+          });
+          tabelHtml += '</tr>';
+        });
+        
+        tabelHtml += '</table>';
+        document.getElementById('hasil-box').innerHTML = tabelHtml;
+      })
+      .catch(error => {
+        document.getElementById('hasil-box').innerHTML = 'Gagal memuat data.';
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
