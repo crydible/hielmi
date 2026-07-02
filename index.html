@@ -46,14 +46,13 @@
     td {
       padding: 6px;
       font-size: 14px;
-      border: none; /* Garis tabel dihilangkan */
+      border: none;
     }
   </style>
 </head>
 <body>
   <h2>hasil</h2>
   <div id="tanggal-box">Memuat tanggal...</div>
-  
   <div id="hasil-box">Loading data...</div>
 
   <script>
@@ -61,7 +60,8 @@
     const sheetName = 'plafon';
     const range = 'A24:D40';
 
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}&range=${range}`;
+    // Tambahan headers=0 biar baris awal gak hilang dianggap judul
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${sheetName}&range=${range}`;
 
     fetch(url)
       .then(response => response.text())
@@ -71,9 +71,9 @@
         let tabelHtml = '<table>';
         
         baris.forEach((data, index) => {
-          const kolom = data.replace(/"/g, '').split(',');
+          // Pemecah kolom yang lebih aman kalau ada tanda koma di dalam teks
+          const kolom = data.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/(^"|"$)/g, '').trim());
           
-          // Memisahkan baris 24 dan 25 untuk tanggal (index 0 dan 1)
           if (index < 2) {
             let tglRow = [];
             if (kolom[0]) tglRow.push(kolom[0]);
@@ -81,8 +81,16 @@
             if (tglRow.length > 0) {
               tanggalHtml += `<div>${tglRow.join(' ')}</div>`;
             }
+            
+            // Mengamankan data C dan D jika ada di baris 24-25 biar masuk ke kotak
+            if (kolom[2] || kolom[3]) {
+              tabelHtml += '<tr>';
+              tabelHtml += `<td></td><td></td>`; 
+              tabelHtml += `<td>${kolom[2] || ''}</td>`;
+              tabelHtml += `<td>${kolom[3] || ''}</td>`;
+              tabelHtml += '</tr>';
+            }
           } else {
-            // Baris sisanya masuk ke dalam kotak hasil
             tabelHtml += '<tr>';
             kolom.forEach(isi => {
               tabelHtml += `<td>${isi || ''}</td>`;
