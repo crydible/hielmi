@@ -16,10 +16,19 @@
       height: 100vh;
     }
     h2 {
-      margin-top: 150px;
+      margin-top: 120px;
       color: black;
       font-size: 24px;
       letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    #tanggal-box {
+      color: black;
+      font-size: 16px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: bold;
+      line-height: 1.4;
     }
     #hasil-box {
       background-color: #b3b3b3;
@@ -28,20 +37,23 @@
       height: 400px;
       overflow-y: auto;
       padding: 10px;
+      border-radius: 4px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
     }
     td {
-      padding: 5px;
-      border: 1px solid #888;
+      padding: 6px;
       font-size: 14px;
+      border: none; /* Garis tabel dihilangkan */
     }
   </style>
 </head>
 <body>
-  <h2>TOKO OVERDUE</h2>
+  <h2>hasil</h2>
+  <div id="tanggal-box">Memuat tanggal...</div>
+  
   <div id="hasil-box">Loading data...</div>
 
   <script>
@@ -55,21 +67,37 @@
       .then(response => response.text())
       .then(csvText => {
         const baris = csvText.split('\n');
+        let tanggalHtml = '';
         let tabelHtml = '<table>';
         
-        baris.forEach(data => {
-          tabelHtml += '<tr>';
+        baris.forEach((data, index) => {
           const kolom = data.replace(/"/g, '').split(',');
-          kolom.forEach(isi => {
-            tabelHtml += `<td>${isi}</td>`;
-          });
-          tabelHtml += '</tr>';
+          
+          // Memisahkan baris 24 dan 25 untuk tanggal (index 0 dan 1)
+          if (index < 2) {
+            let tglRow = [];
+            if (kolom[0]) tglRow.push(kolom[0]);
+            if (kolom[1]) tglRow.push(kolom[1]);
+            if (tglRow.length > 0) {
+              tanggalHtml += `<div>${tglRow.join(' ')}</div>`;
+            }
+          } else {
+            // Baris sisanya masuk ke dalam kotak hasil
+            tabelHtml += '<tr>';
+            kolom.forEach(isi => {
+              tabelHtml += `<td>${isi || ''}</td>`;
+            });
+            tabelHtml += '</tr>';
+          }
         });
         
         tabelHtml += '</table>';
+        
+        document.getElementById('tanggal-box').innerHTML = tanggalHtml || 'Tanggal tidak ditemukan';
         document.getElementById('hasil-box').innerHTML = tabelHtml;
       })
       .catch(error => {
+        document.getElementById('tanggal-box').innerHTML = '';
         document.getElementById('hasil-box').innerHTML = 'Gagal memuat data.';
         console.error(error);
       });
