@@ -3,59 +3,188 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hasil GSheet</title>
+  <title>Overdue Monitoring System // Cyber-UI</title>
   <style>
+    /* Google Fonts untuk nuansa Sci-Fi / Cyberpunk */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --cyber-bg: #0a0a12;
+      --neon-cyan: #00f3ff;
+      --neon-magenta: #ff0055;
+      --cyber-panel: rgba(16, 16, 28, 0.75);
+      --text-color: #adeafd;
+    }
+
     body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(to bottom, #3eb8c1, #008080); 
-      font-family: sans-serif;
+      background-color: var(--cyber-bg);
+      /* Efek garis pendar horizontal samar ala layar komputer jadul (Scanlines) */
+      background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 4px, 6px 100%;
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--text-color);
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+      overflow: hidden;
     }
+
+    /* Animasi Glitch Keren untuk Judul Utama */
     h2 {
-      margin-top: 120px;
-      color: black;
-      font-size: 24px;
-      letter-spacing: 1px;
+      font-family: 'Orbitron', sans-serif;
+      margin-top: 20px;
       margin-bottom: 5px;
+      color: #fff;
+      font-size: 28px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      position: relative;
+      text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+      animation: glitch 3s infinite;
     }
+
+    h2::before, h2::after {
+      content: 'DAFTAR TOKO OVERDUE';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--cyber-bg);
+    }
+
+    h2::before {
+      left: 2px;
+      text-shadow: -2px 0 var(--neon-magenta);
+      clip: rect(44px, 450px, 56px, 0);
+      animation: glitch-anim 5s infinite linear alternate-reverse;
+    }
+
+    h2::after {
+      left: -2px;
+      text-shadow: -2px 0 var(--neon-cyan);
+      clip: rect(85px, 450px, 140px, 0);
+      animation: glitch-anim 2s infinite linear alternate-reverse;
+    }
+
     #tanggal-box {
-      color: black;
-      font-size: 16px;
-      margin-bottom: 15px;
+      font-family: 'Orbitron', sans-serif;
+      color: var(--neon-magenta);
+      font-size: 14px;
+      margin-bottom: 25px;
       text-align: center;
       font-weight: bold;
-      line-height: 1.4;
+      letter-spacing: 1px;
+      text-shadow: 0 0 5px var(--neon-magenta);
     }
+
+    /* Box Container Utama bergaya HUD Militer Futuristik */
     #hasil-box {
-      background-color: #b3b3b3;
-      width: 80%;
-      max-width: 400px;
-      height: 400px;
+      background: var(--cyber-panel);
+      width: 90%;
+      max-width: 550px;
+      height: 420px;
       overflow-y: auto;
-      padding: 15px;
-      border-radius: 4px;
+      padding: 20px;
+      border: 2px solid var(--neon-cyan);
+      border-radius: 0px; /* Cyberpunk identik dengan sudut tajam/kotak */
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 15px rgba(0, 243, 255, 0.1);
+      position: relative;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%); /* Potongan sudut bawah kanan */
     }
+
+    /* Kustomisasi Scrollbar ala Cyberpunk */
+    #hasil-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    #hasil-box::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    #hasil-box::-webkit-scrollbar-thumb {
+      background: var(--neon-cyan);
+      box-shadow: 0 0 5px var(--neon-cyan);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
     }
+
+    tr {
+      border-bottom: 1px dashed rgba(0, 243, 255, 0.2);
+      transition: background 0.3s;
+    }
+
+    /* Efek hover menyala saat baris tabel didekati mouse */
+    tr:hover {
+      background: rgba(0, 243, 255, 0.1);
+      box-shadow: inset 0 0 8px rgba(0, 243, 255, 0.2);
+    }
+
     td {
-      padding: 6px;
-      font-size: 14px;
-      border: none;
-      color: #000;
-      vertical-align: top;
+      padding: 12px 8px;
+      font-size: 15px;
+      color: var(--text-color);
+      vertical-align: middle;
+    }
+
+    /* Memberikan warna pembeda otomatis untuk Kolom ID/Nama Toko agar kontras */
+    td:first-child {
+      color: var(--neon-cyan);
+      font-weight: bold;
+    }
+
+    /* Animasi Glitch Keyframes */
+    @keyframes glitch {
+      0% { text-shadow: 0 0 10px var(--neon-cyan); }
+      50% { text-shadow: 0 0 15px var(--neon-cyan), 2px 2px var(--neon-magenta); }
+      100% { text-shadow: 0 0 10px var(--neon-cyan); }
+    }
+
+    @keyframes glitch-anim {
+      0% { clip: rect(15px, 9999px, 66px, 0); }
+      10% { clip: rect(34px, 9999px, 55px, 0); }
+      20% { clip: rect(12px, 9999px, 89px, 0); }
+      30% { clip: rect(67px, 9999px, 23px, 0); }
+      40% { clip: rect(5px, 9999px, 99px, 0); }
+      50% { clip: rect(88px, 9999px, 12px, 0); }
+      60% { clip: rect(43px, 9999px, 54px, 0); }
+      70% { clip: rect(93px, 9999px, 62px, 0); }
+      80% { clip: rect(12px, 9999px, 34px, 0); }
+      90% { clip: rect(65px, 9999px, 88px, 0); }
+      100% { clip: rect(2px, 9999px, 45px, 0); }
+    }
+
+    /* Animasi Loading Teks Berkedip */
+    .blink-loading {
+      animation: blink 1s infinite;
+      color: var(--neon-cyan);
+      text-align: center;
+      margin-top: 150px;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
   </style>
 </head>
 <body>
-  <h2>DAFTAR TOKO OVERDUE</h2>
-  <div id="tanggal-box">Memuat tanggal...</div>
-  <div id="hasil-box">Loading data...</div>
+
+  <h2>Daftar Toko Overdue</h2>
+  <div id="tanggal-box">SYS_STATUS // MEMUAT DATA_</div>
+  <div id="hasil-box">
+    <div class="blink-loading">> WAITING FOR UPLINK...</div>
+  </div>
 
   <script>
     const sheetId = '1BfKO4BBELtGEg6yh4Ei7LGgGJ4Ckc4c3f2KJKglahoU';
@@ -64,7 +193,6 @@
 
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${sheetName}&range=${range}`;
 
-    // Fungsi khusus buat pecah CSV biar teks panjang atau aneh gak bikin baris hilang
     function uraiCSV(teks) {
       let baris = [];
       let isiKolom = [""];
@@ -102,22 +230,18 @@
         let tanggalHtml = '';
         let tabelHtml = '<table>';
         
-        // 1. Ambil baris 24 & 25 (index 0 & 1) khusus buat tanggal di luar kotak
         for (let i = 0; i < Math.min(2, semuaBaris.length); i++) {
           let k = semuaBaris[i];
           let tgl = `${k[0] || ''} ${k[1] || ''}`.trim();
-          if (tgl) tanggalHtml += `<div>${tgl}</div>`;
+          if (tgl) tanggalHtml += `<div>[ ${tgl} ]</div>`;
         }
 
-        // 2. Ambil baris sisanya (A26 ke bawah / index 2 sampai akhir) dimasukkan full ke kotak hasil
         for (let i = 2; i < semuaBaris.length; i++) {
           let k = semuaBaris[i];
           
-          // Skip kalau baris bener-bener kosong melompong
           if (k.join('').trim() === '') continue; 
           
           tabelHtml += '<tr>';
-          // Paksa keluarin sampai 4 kolom (A, B, C, D) tanpa ada yang disembunyiin
           for (let j = 0; j < 4; j++) {
             tabelHtml += `<td>${k[j] || ''}</td>`;
           }
@@ -126,12 +250,12 @@
         
         tabelHtml += '</table>';
         
-        document.getElementById('tanggal-box').innerHTML = tanggalHtml || 'Tanggal tidak ditemukan';
+        document.getElementById('tanggal-box').innerHTML = tanggalHtml || 'NO_DATE_STAMP';
         document.getElementById('hasil-box').innerHTML = tabelHtml;
       })
       .catch(error => {
-        document.getElementById('tanggal-box').innerHTML = '';
-        document.getElementById('hasil-box').innerHTML = 'Gagal memuat data.';
+        document.getElementById('tanggal-box').innerHTML = 'ERR_CONNECTION_FAILED';
+        document.getElementById('hasil-box').innerHTML = '<div class="blink-loading" style="color:var(--neon-magenta);">> ACCESS DENIED. CORRUPTED DATA.</div>';
         console.error(error);
       });
   </script>
